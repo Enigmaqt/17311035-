@@ -1,0 +1,159 @@
+<!doctype HTML>
+<html>
+<head>
+<title>Task 4.1 - Line translation</title>
+<link href="https://fonts.googleapis.com/css?family=Exo+2" rel="stylesheet">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<style>
+	body { margin: 30px; }
+	
+	canvas { border: 1px solid #ced4da; border-radius: 15px; margin: 20px 0px; }
+	
+	input { margin: 10px 15px; padding: 5px }
+	
+	hr { width: 300px; display: table-caption; }
+	
+	.btn { margin: 10px 35px; }
+	
+	.form-control {display: inline-block; max-width: 250px; }
+</style>
+</head>
+<body>
+<h3>4.1 Транслация на отсечка</h3>
+Изчертайте линия с алгоритъма на Брезенхам.<br />
+Задайте вектор на транслация. <br />
+Транслирайте изчертаната линия със зададения вектор. <br />
+<canvas id="myCanvas"></canvas>
+<form name="form"> 
+<hr>
+X<sub>1</sub>: <input class="form-control" type="text" name="X1" value="0" /><br />
+Y<sub>1</sub>: <input class="form-control" type="text" name="Y1" value="0" /><br />
+<hr>
+X<sub>2</sub>: <input class="form-control" type="text" name="X2" value="0" /><br />
+Y<sub>2</sub>: <input class="form-control" type="text" name="Y2" value="0" /><br />
+<hr>
+M: <input class="form-control" type="text" name="M" value="0" /><br />
+N: <input class="form-control" type="text" name="N" value="0" /><br />
+<input class="ht-tm-element btn btn-dark" type="button" onclick="Draw();" value="Draw the lines" />
+</form>
+<script>
+var width = 640;
+var height = 480;
+var dataLength = width * height * 4;
+var canvas = document.getElementById("myCanvas");
+canvas.width = width;
+canvas.height = height;
+var ctx = canvas.getContext("2d");
+myImageData = ctx.createImageData(width, height);
+function clear() {
+	var i;
+	for (i = 0; i < dataLength; i++) myImageData.data[i] = 255;
+}
+function PutPixel(x, y, color) {
+	if (x < 0 || x >= width || y < 0 || y >= height) return;
+	var t = (y * width + x) * 4;
+	var i;	
+	for (i = 0; i < 4; i++) myImageData.data[t + i] = color[i];
+}
+
+function PutLine(_x1, _y1, _x2, _y2, color) {
+	var deltax = Math.abs(_x2 - _x1);
+	var deltay = Math.abs(_y2 - _y1);
+	var error = 0;
+	if (deltax > deltay) {
+		if (_x1 > _x2) {
+			var t = _x1;
+			_x1 = _x2;
+			_x2 = t;
+			t = _y1;
+			_y1 = _y2;
+			_y2 = t;
+		}
+		var deltaerr = deltay / deltax;
+		var y = _y1;
+		var diry = _y2 - _y1;
+		if (diry > 0) diry = 1;
+		if (diry < 0) diry = -1;
+		var x;
+		for (x = _x1; x <= _x2; x++) {
+			PutPixel(x, y, color);
+			error += deltaerr;
+			if (error >= 0.5) {
+				y += diry;
+				error -= 1.0;
+			}
+		} 
+	} else {
+		if (_y1 > _y2) {
+			var t = _x1;
+			_x1 = _x2;
+			_x2 = t;
+			t = _y1;
+			_y1 = _y2;
+			_y2 = t;
+		}
+		var deltaerr = deltax / deltay;
+		var x = _x1;
+		var dirx = _x2 - _x1;
+		if (dirx > 0) dirx = 1;
+		if (dirx < 0) dirx = -1;
+		var y;
+		for (y = _y1; y <= _y2; y++) {
+			PutPixel(x, y, color);
+			error += deltaerr;
+			if (error >= 0.5) {
+				x += dirx;
+				error -= 1.0;
+			}
+		}
+	}
+}
+
+
+function Draw() {
+	var x1 = document.forms["form"]["X1"].value;
+	if (isNaN(x1)) {
+		window.alert("Wrong X_1 value!");
+		return;
+	}
+	x1 = Math.round(x1);
+	var y1 = document.forms["form"]["Y1"].value;
+	if (isNaN(y1)) {
+		window.alert("Wrong Y_1 value!");
+		return;
+	}
+	y1 = Math.round(y1);
+	var x2 = document.forms["form"]["X2"].value;
+	if (isNaN(x2)) {
+		window.alert("Wrong X_2 value!");
+		return;
+	}
+	x2 = Math.round(x2);
+	var y2 = document.forms["form"]["Y2"].value;
+	if (isNaN(y2)) {
+		window.alert("Wrong Y_2 value!");
+		return;
+	}
+	y2 = Math.round(y2);
+	var m = document.forms["form"]["M"].value;
+	if (isNaN(m)) {
+		window.alert("Wrong M value!");
+		return;
+	}
+	m = Math.round(m);
+	var n = document.forms["form"]["N"].value;
+	if (isNaN(n)) {
+		window.alert("Wrong N value!");
+		return;
+	}
+	n = Math.round(n);
+	clear();
+	PutLine(x1, y1, x2, y2, [197, 0, 0, 255]);
+	PutLine(x1 + m, y1 + n, x2 + m, y2 + n, [0, 197, 0, 255]);
+	ctx.putImageData(myImageData, 0, 0);
+}
+clear();
+ctx.putImageData(myImageData, 0, 0);
+</script>
+</body>
+</html>

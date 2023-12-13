@@ -1,0 +1,118 @@
+<!doctype HTML>
+<html>
+<head>
+<title>Task 4.2 - Circle translation</title>
+<link href="https://fonts.googleapis.com/css?family=Exo+2" rel="stylesheet">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<style>
+	body { margin: 30px; }
+	
+	canvas { border: 1px solid #ced4da; border-radius: 15px; margin: 20px 0px; }
+	
+	input { margin: 10px 15px; padding: 5px }
+	
+	hr { width: 300px; display: table-caption; }
+	
+	.btn { margin: 10px 35px; }
+	
+	.form-control { display: inline-block; max-width: 250px; }
+</style>
+</head>
+<body>
+<h3>4.2 Транслация на отсечка</h3>
+Изчертайте окръжност с алгоритъма на Брезенхам. <br />
+Задайте вектор на транслация. <br />
+Транслирайте изчертаната линия със зададения вектор. <br />
+<canvas id="myCanvas"></canvas>
+<form name="form"> 
+X: <input class="form-control" type="text" name="X" value="0" /><br />
+Y: <input class="form-control" type="text" name="Y" value="0" /><br />
+<hr>
+R: <input class="form-control" type="text" name="R" value="0" /><br />
+<hr>
+M: <input class="form-control" type="text" name="M" value="0" /><br />
+N: <input class="form-control" type="text" name="N" value="0" /><br />
+<input class="ht-tm-element btn btn-dark" type="button" onclick="Draw();" value="Draw the circles" />
+</form>
+<script>
+var width = 640;
+var height = 480;
+var dataLength = width * height * 4;
+var canvas = document.getElementById("myCanvas");
+canvas.width = width;
+canvas.height = height;
+var ctx = canvas.getContext("2d");
+myImageData = ctx.createImageData(width, height);
+function clear() {
+	var i;
+	for (i = 0; i < dataLength; i++) myImageData.data[i] = 255;
+}
+function PutPixel(x, y, color) {
+	if (x < 0 || x >= width || y < 0 || y >= height) return;
+	var t = (y * width + x) * 4;
+	var i;	
+	for (i = 0; i < 4; i++) myImageData.data[t + i] = color[i];
+}
+
+function PutCircle(_x, _y, _r, color) {
+	var X = 0, Y = _r, delta = 3 - 2 * _r;
+	while (X <= Y) {
+		PutPixel(_x + X, _y + Y, color);
+		PutPixel(_x + X, _y - Y, color);
+		PutPixel(_x - X, _y + Y, color);
+		PutPixel(_x - X, _y - Y, color);
+		PutPixel(_x + Y, _y + X, color);
+		PutPixel(_x + Y, _y - X, color);
+		PutPixel(_x - Y, _y + X, color);
+		PutPixel(_x - Y, _y - X, color);
+		if (delta < 0) 
+			delta += 4 * X + 6;
+		else {
+			delta += 4 * (X - Y) + 10;
+			Y -= 1;
+		}
+		X += 1;
+	}
+}
+
+function Draw() {
+	var x0 = document.forms["form"]["X"].value;
+	if (isNaN(x0)) {
+		window.alert("Wrong X value!");
+		return;
+	}
+	x0 = Math.round(x0);
+	var y0 = document.forms["form"]["Y"].value;
+	if (isNaN(y0)) {
+		window.alert("Wrong Y value!");
+		return;
+	}
+	y0 = Math.round(y0);
+	var R = document.forms["form"]["R"].value;
+	if (isNaN(R) || R < 0) {
+		window.alert("Wrong radius value!");
+		return;
+	}
+	R = Math.round(R);
+	var m = document.forms["form"]["M"].value;
+	if (isNaN(m)) {
+		window.alert("Wrong M value!");
+		return;
+	}
+	m = Math.round(m);
+	var n = document.forms["form"]["N"].value;
+	if (isNaN(n)) {
+		window.alert("Wrong N value!");
+		return;
+	}
+	n = Math.round(n);
+	clear();
+	PutCircle(x0, y0, R, [197, 0, 0, 255]);
+	PutCircle(x0 + m, y0 + n, R, [0, 197, 0, 255]);
+	ctx.putImageData(myImageData, 0, 0);
+}
+clear();
+ctx.putImageData(myImageData, 0, 0);
+</script>
+</body>
+</html>

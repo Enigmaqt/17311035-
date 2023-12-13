@@ -1,0 +1,159 @@
+<html>
+<head>
+<title>Polygon fill</title>
+</head>
+<body>
+<canvas id="myCanvas"></canvas>
+<form name="form"> 
+Xi: <input class="formata" type="text" name="X" value="250,350,200,150" /><br />
+Yi: <input class="formata" type="text" name="Y" value="70,200,330,180" /><br />
+Line distance:
+<input class="formata" type="text" name="forma" value="10" /><br />
+<input class="button" type="button" onclick="Draw();" value="Draw figure" />
+</form>
+<script>
+var width = 1000;
+var height = 600;
+var dataLength = width * height * 4;
+var canvas = document.getElementById("myCanvas");
+canvas.width = width;
+canvas.height = height;
+var ctx = canvas.getContext("2d");
+myImageData = ctx.createImageData(width, height);
+function clear() {
+	var i;
+	for (i = 0; i < dataLength; i++) myImageData.data[i] = 255;
+}
+function PutPixel(x, y, color) {
+	if (x < 0 || x >= width || y < 0 || y >= height) return;
+	var t = (y * width + x) * 4;
+	var i;	
+	for (i = 0; i < 4; i++) myImageData.data[t + i] = color[i];
+}
+
+function PutHLine(_x1, _x2, _y, color) {
+	var i;
+	for (i = _x1; i <= _x2; i++) PutPixel(i, _y, color);
+}
+
+function PutLine(_x1, _y1, _x2, _y2, color) {
+	var deltax = Math.abs(_x2 - _x1);
+	var deltay = Math.abs(_y2 - _y1);
+	var error = 0;
+	if (deltax > deltay) {
+		if (_x1 > _x2) {
+			var t = _x1;
+			_x1 = _x2;
+			_x2 = t;
+			t = _y1;
+			_y1 = _y2;
+			_y2 = t;
+		}
+		var deltaerr = deltay / deltax;
+		var y = _y1;
+		var diry = _y2 - _y1;
+		if (diry > 0) diry = 1;
+		if (diry < 0) diry = -1;
+		var x;
+		for (x = _x1; x <= _x2; x++) {
+			PutPixel(x, y, color);
+			error += deltaerr;
+			if (error >= 0.5) {
+				y += diry;
+				error -= 1.0;
+			}
+		} 
+	} else {
+		if (_y1 > _y2) {
+			var t = _x1;
+			_x1 = _x2;
+			_x2 = t;
+			t = _y1;
+			_y1 = _y2;
+			_y2 = t;
+		}
+		var deltaerr = deltax / deltay;
+		var x = _x1;
+		var dirx = _x2 - _x1;
+		if (dirx > 0) dirx = 1;
+		if (dirx < 0) dirx = -1;
+		var y;
+		for (y = _y1; y <= _y2; y++) {
+			PutPixel(x, y, color);
+			error += deltaerr;
+			if (error >= 0.5) {
+				x += dirx;
+				error -= 1.0;
+			}
+		}
+	}
+}
+
+
+function Draw() {
+	var x = document.forms["form"]["X"].value;
+	x = x.split(",").map(Number);
+	if (x.findIndex(Number.isNaN) != -1 || x.length < 3) {
+		window.alert("Wrong Xi value!");
+		return;
+	}
+	var y = document.forms["form"]["Y"].value;
+	y = y.split(",").map(Number);
+	if (y.findIndex(Number.isNaN) != -1 || y.length < 3) {
+		window.alert("Wrong Yi value!");
+		return;
+	}
+	if (x.length != y.length) {
+		window.alert("Xi and Yi arrays have different size!");
+		return;
+	}
+	var forma = document.forms["form"]["forma"].value;
+	if (isNaN(forma)) {
+		window.alert("Wrong line distance value!");
+		return;
+	}
+	forma = Math.round(forma);
+	clear();
+	
+	var i;		
+	var lines = [x[x.length-1], y[y.length-1], x[0], y[0]];
+	for (i = 0; i < x.length-1; i++)
+		lines.push(x[i], y[i], x[i+1], y[i+1]);
+	var minY = maxY = y[0];
+	for (i = 1; i < y.length; i++) {
+		minY = Math.min(minY, y[i]);
+		maxY = Math.max(maxY, y[i]);
+	}
+	
+	for (i = minY; i <= maxY; i++) {
+		if ( i % forma != 0 ) continue;
+		var Xs = [];
+		var j;
+		for (j = 0; j < lines.length; j+=4) {
+			var x1 = lines[j];
+			var y1 = lines[j+1];
+			var x2 = lines[j+2];
+			var y2 = lines[j+3];
+			if (i <= Math.min(y1, y2) || i > Math.max(y1, y2)) continue;
+			if (x1 == x2) 
+				Xs.push(x1);
+			else 
+				Xs.push(x1 + Math.round((i - y1) * (x2 - x1) / (y2 - y1)));
+
+		}
+		Xs = Xs.sort(function(a, b) {return a - b;});
+		
+		for (j = 0; j < Xs.length; j+=2)
+			PutHLine(Xs[j], Xs[j+1], i, [0, 0, 0, 255]);
+
+	}
+
+	for (i = 0; i < lines.length; i+=4)
+		PutLine(lines[i], lines[i+1], lines[i+2], lines[i+3], [185, 63, 63, 255]);
+	ctx.putImageData(myImageData, 0, 0);
+}
+clear();
+ctx.putImageData(myImageData, 0, 0);
+</script>
+</body>
+</html>
